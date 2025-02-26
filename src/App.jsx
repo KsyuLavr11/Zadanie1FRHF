@@ -1,5 +1,24 @@
 import { useForm } from 'react-hook-form';
 import styles from './App.module.css';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+
+const passwordAndEmailValidationScheme = yup.object().shape({
+	email: yup
+		.string()
+		.required('Пожалуйста, введите email')
+		.matches(
+			/^[a-zA-Z0-9_@.]+$/,
+			'Неверный email. Допустимые символы - латинские буквы, цифры и нижнее подчеркивание',
+		)
+		.max(30, 'Неверный email. Должно быть меньше 30 символов.')
+		.min(3, 'Неверный email. Должно быть больше 3 символов.'),
+	password: yup.string().min(5, 'Пароль должен быть не менее 5 символов.'),
+	password2: yup
+		.string()
+		.min(5, 'Пароль должен быть не менее 5 символов.')
+		.oneOf([yup.ref('password')], 'Пароли должны совпадать'),
+});
 
 export const App = () => {
 	const {
@@ -13,39 +32,12 @@ export const App = () => {
 			password: '',
 			password2: '',
 		},
-		mode: 'onChange',
+		resolver: yupResolver(passwordAndEmailValidationScheme),
 	});
-
-	const emailProps = {
-		minLength: {
-			value: 3,
-			messages: 'Неверный email. Должно быть больше 3 символов.',
-		},
-		maxLength: {
-			value: 30,
-			messages: 'Неверный email. Должно быть меньше 30 символов.',
-		},
-		pattern: {
-			value: /^[a-zA-Z0-9_@.]+$/,
-			messages:
-				'Неверный email.Допустимые символы - латинские буквы, цифры и нижнее подчеркивание',
-		},
-	};
-
-	const errorEmail = errors.email?.message;
 
 	const onSubmit = (formData) => {
 		console.log(formData);
 	};
-
-	const passwordProps = {
-		minLength: {
-			value: 5,
-			messages: 'Пароль должен быть не менее 5 символов.',
-		},
-	};
-	const errorPassword = errors.password?.message;
-	const errorPassword2 = errors.password2?.message;
 
 	const handleReset = () => {
 		reset();
@@ -60,32 +52,39 @@ export const App = () => {
 					type="email"
 					name="email"
 					placeholder="Почта"
-					{...register('email', emailProps)}
+					{...register('email')}
 				/>
-				{errorEmail && <div className={styles.error}>{errorEmail}</div>}
+
+				{errors.email?.message && (
+					<div className={styles.error}>{errors.email.message}</div>
+				)}
 				<input
 					className={styles.input}
 					type="password"
 					name="password"
 					placeholder="Пароль"
-					{...register('password', passwordProps)}
+					{...register('password')}
 				/>
-				{errorPassword && <div className={styles.error}>{errorPassword}</div>}
+				{errors.password?.message && (
+					<div className={styles.error}>{errors.password.message}</div>
+				)}
 				<input
 					className={styles.input}
 					type="password"
 					name="password2"
 					placeholder="Повторите пароль"
-					{...register('password2', passwordProps)}
+					{...register('password2')}
 				/>
-				{errorPassword2 && <div className={styles.error}>{errorPassword2}</div>}
+				{errors.password2?.message && (
+					<div className={styles.error}>{errors.password2.message}</div>
+				)}
 				<button className={styles.button} type="button" onClick={handleReset}>
 					Сброс
 				</button>
 				<button
 					className={styles.button}
 					type="submit"
-					disabled={!!errorEmail || !!errorPassword || !!errorPassword2}
+					disabled={!!errors.email || !!errors.password || !!errors.password2}
 				>
 					Зарегистрироваться
 				</button>
