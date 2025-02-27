@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import { useRef, useEffect } from 'react';
 import styles from './App.module.css';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -21,11 +22,13 @@ const passwordAndEmailValidationScheme = yup.object().shape({
 });
 
 export const App = () => {
+	const submitButtonRef = useRef(null);
+
 	const {
 		register,
 		handleSubmit,
 		reset,
-		formState: { errors },
+		formState: { errors, isValid },
 	} = useForm({
 		defaultValues: {
 			email: '',
@@ -42,6 +45,12 @@ export const App = () => {
 	const handleReset = () => {
 		reset();
 	};
+
+	useEffect(() => {
+		if (isValid && submitButtonRef.current) {
+			submitButtonRef.current.focus();
+		}
+	}, [isValid]);
 
 	return (
 		<div>
@@ -82,9 +91,15 @@ export const App = () => {
 					Сброс
 				</button>
 				<button
+					ref={submitButtonRef}
 					className={styles.button}
 					type="submit"
-					disabled={!!errors.email || !!errors.password || !!errors.password2}
+					disabled={
+						!!errors.email ||
+						!!errors.password ||
+						!!errors.password2 ||
+						!isValid
+					}
 				>
 					Зарегистрироваться
 				</button>
